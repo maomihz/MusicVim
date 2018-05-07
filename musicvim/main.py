@@ -10,15 +10,14 @@ class Vimcn:
     def __init__(self, file):
         self._ext = ''
         self.existdb = existdb
-        # Try the bytes object
         if (hasattr(file, 'decode')):
+            # If the file type is bytes then the file is the content
             self.content = file
-            self.hash = sha1(self.content)
-        # Try file object
         elif (hasattr(file, 'read')):
+            # if it is an already opened file then the content is to read
             self.content = f.read()
-        # Assume to be a file name
         else:
+            # If it is a file name then open it
             self.name, self._ext = splitext(file)
             with open(file, 'rb') as f:
                 self.content = f.read()
@@ -27,6 +26,7 @@ class Vimcn:
         self.hash = sha1(self.content)
         self.ok = False
 
+    # Extension of the file
     @property
     def ext(self):
         return self._ext
@@ -36,16 +36,17 @@ class Vimcn:
         self._ext = x
 
     def url(self, ext=None):
-        if not ext:
-            ext = self.ext or ''
+        ext = self.ext or ''
         digest = self.hash.hexdigest()
+        # https://img.vim-cn.com/[digest0-2]/[digest3-32].ext
         result = vimimg + digest[:2] + "/" + digest[2:] + ext
         return result
 
+    # Write the file to exist db
     def _cache_exist(self):
-        self.ok = True
         self.existdb[self.hash.hexdigest()] = 1
 
+    # Check if the file exist in db
     def _exist(self):
         if self.ok:
             return True
@@ -55,23 +56,24 @@ class Vimcn:
     def exist(self):
         # Cache the "True" response
         if self._exist():
-            # print('hit')
             return True
 
-        # do the request and cache the result as necessary
+        # do a head request to check if the file exists.
+        # if the file exist (200) then write to cache db
         r = requests.head(self.url(ext=''))
+        self.ok = r.ok
         if r.ok:
             self._cache_exist()
         return r.ok
 
+
     def upload(self):
-        # POST the file
-        for i in range(3):
-            r = requests.post(vimimg, files=dict(name=self.content))
-            if r.ok:
-                self._cache_exist()
-                return r
-        raise Exception("Error uploading file")
+        r = requests.post(vimimg, files=dict(name=self.content))
+        assert r.ok, 'Upload failed.'
+
+        self.ok = True
+        self._cache_exist()
+        return r
 
     def __repr__(self):
         return self.url()

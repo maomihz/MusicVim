@@ -6,7 +6,7 @@ class Song:
         self.fname = file
         self.file = mutagen.File(file)
         if self.file == None:
-            raise FileNotFoundError("File does not exist")
+            raise NotImplementedError("File error. Not a music file?")
 
     @property
     def tags(self):

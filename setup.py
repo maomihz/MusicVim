@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='musicvim',
-      version='0.1',
+      version='0.0.1',
       description='When music meets Vim',
       url='https://maomao.blog',
       author='MaomiHz',
@@ -14,11 +14,11 @@ setup(name='musicvim',
       packages=['musicvim'],
       install_requires=[
           'requests',
-          'mutagen'
+          'mutagen',
+          'pyperclip'
       ],
       entry_points = {
           'console_scripts': [
-              'music=musicvim.music:main',
               'img=musicvim.img:main'
           ],
       },
